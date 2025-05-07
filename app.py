@@ -55,17 +55,31 @@ def estimate_percentile(score):
     else:
         return 90
 
+def review_pathway(title, summary, description):
+    for section, text in [("Title/Abstract", title), ("Project Summary", summary)]:
+        if flag_sensitive_terms(text):
+            return f"Category 3: DEIA/EO language flagged in {section}."
+    if flag_sensitive_terms(description):
+        return "Category 3: DEIA/EO language flagged in Project Description."
+    else:
+        return "Category 1: No DEIA/EO language found. Add justification comment."
+
 # --- Streamlit App ---
 st.set_page_config(page_title="Grant Risk Scanner", layout="wide")
 st.title("🧠 Grant Proposal Risk Scanner")
 st.markdown("This tool flags politically sensitive language and estimates the risk percentile based on current climate.")
 
 agency = st.selectbox("Select Funding Agency Profile", ["NIH", "NSF", "Other"])
-grant_text = st.text_area("Paste your grant text here", height=300)
+
+# Section-based inputs
+title_text = st.text_area("Paste your Title or Abstract", height=100)
+summary_text = st.text_area("Paste your Project Summary", height=100)
+description_text = st.text_area("Paste your Project Description", height=200)
 
 if st.button("Analyze"):
-    if grant_text:
-        flagged = flag_sensitive_terms(grant_text)
+    combined_text = " ".join([title_text, summary_text, description_text])
+    if combined_text.strip():
+        flagged = flag_sensitive_terms(combined_text)
         score = compute_risk_score(flagged)
         percentile = estimate_percentile(score)
 
@@ -79,5 +93,8 @@ if st.button("Analyze"):
             st.dataframe(df)
         else:
             st.success("No sensitive terms flagged. Low risk detected.")
+
+        st.subheader("🧾 Flowchart Review Classification")
+        st.write(review_pathway(title_text, summary_text, description_text))
     else:
-        st.warning("Please paste some text to analyze.")
+        st.warning("Please paste content into one or more fields to analyze.")
