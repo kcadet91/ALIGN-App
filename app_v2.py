@@ -91,9 +91,11 @@ Flagged terms: {', '.join(flagged_terms)}"""
         "parameters": {"max_new_tokens": 300}
     }
     response = requests.post(
-        "https://api-inference.huggingface.co/models/deepseek-ai/deepseek-llm-7b-base",
-        headers=headers,
-        json=payload
+    "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta",
+    headers=headers,
+    json=payload
+
+
     )
     if response.status_code == 200:
         result = response.json()
@@ -127,9 +129,20 @@ st.markdown("""
 
 # --- Header ---
 st.markdown("""
-    <h1>ALIGN: Assessing Language Impact for Grant Narratives</h1>
-    <p style="font-size: 16px; color: #333;">This tool is a prototype to support transparency and awareness in grant language — it does not reflect official agency guidance or guarantee any funding outcome. Always consult your program officer or institutional grant support office.</p>
+    <div style="background-color:#1B355D; padding: 2rem 1rem; border-radius: 8px;">
+        <h1 style='color: white; font-size: 38px; font-family: "Segoe UI", "Open Sans", sans-serif; text-align: center;'>
+            ALIGN: Assessing Language Impact for Grant Narratives
+        </h1>
+    </div>
+    <div style='padding-top: 1rem;'>
+        <p style='font-size: 17px; font-family: "Segoe UI", "Open Sans", sans-serif; color: #333; text-align: center;'>
+            This tool is a prototype to support transparency and awareness in grant language and
+        it does not reflect official agency guidance or guarantee any funding outcome.
+            Always consult your program officer or institutional grant support office.
+        </p>
+    </div>
 """, unsafe_allow_html=True)
+
 
 agency = st.selectbox("Select Funding Agency Profile", ["NIH", "NSF", "Other"])
 
@@ -180,6 +193,6 @@ st.markdown("""
     <hr>
     <p style="font-size: 14px; color: #555;">
     <strong>Maintainer:</strong> Dr. Kechna Cadet – Substance Use Epidemiologist<br>
-    For feedback or collaboration, please contact the development team.
+    For feedback or collaboration, please contact Dr. Cadet at kc3010@cumc.columbia.edu.
     </p>
 """, unsafe_allow_html=True)
