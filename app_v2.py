@@ -2,6 +2,11 @@ import streamlit as st
 import re
 import pandas as pd
 from collections import Counter
+import requests
+
+# --- Setup Hugging Face API for DeepSeek ---
+HUGGINGFACE_API_TOKEN = st.secrets["HUGGINGFACE_API_TOKEN"]
+
 
 # --- Expanded Sensitive Keyword List (from NSF ban list) ---
 sensitive_keywords = {
@@ -64,9 +69,42 @@ def review_pathway(title, summary, description):
     else:
         return "Category 1: No DEIA/EO language found. Add justification comment."
 
+def highlight_text(text, flagged_terms):
+    for term in flagged_terms:
+        pattern = re.compile(rf"(?i)\b({re.escape(term)})\b")
+        text = pattern.sub(r'<span style="background-color: yellow;">\1</span>', text)
+    return text
+
+def suggest_alternatives(text, flagged_terms):
+    prompt = f"""Rewrite this grant proposal to reduce risk from the following terms:
+{text}
+
+Flagged terms: {', '.join(flagged_terms)}"""
+
+    headers = {
+        "Authorization": f"Bearer {HUGGINGFACE_API_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "inputs": prompt,
+        "parameters": {"max_new_tokens": 300}
+    }
+
+    response = requests.post(
+        "https://api-inference.huggingface.co/models/deepseek-ai/deepseek-llm-7b-base",
+        headers=headers,
+        json=payload
+    )
+
+    if response.status_code == 200:
+        result = response.json()
+        return result[0]["generated_text"] if isinstance(result, list) else result["generated_text"]
+    else:
+        return "[Error generating reworded suggestions from DeepSeek.]"
+
 # --- Streamlit App ---
-st.set_page_config(page_title="Assessing Language Impact for Grant Narratives", layout="wide")
-st.title("Assessing Language Impact for Grant Narratives (ALIGN)")
+st.set_page_config(page_title="ALIGN: Assessing Language Impact for Grant Narratives", layout="wide")
+st.title("🧠 ALIGN: Assessing Language Impact for Grant Narratives")
 st.markdown("This tool flags politically sensitive language and estimates the risk percentile based on current climate.")
 
 agency = st.selectbox("Select Funding Agency Profile", ["NIH", "NSF", "Other"])
@@ -85,12 +123,21 @@ if st.button("Analyze"):
 
         st.subheader("📊 Risk Analysis")
         st.write(f"**Risk Score:** {score}")
+        st.markdown("**Risk Score Definition:** Total frequency of flagged terms. Higher scores suggest greater likelihood of scrutiny in politically sensitive reviews.")
         st.write(f"**Estimated Risk Percentile:** {percentile}th percentile")
 
         if flagged:
             st.subheader("🚩 Flagged Terms")
             df = pd.DataFrame(flagged.items(), columns=["Term", "Frequency"])
             st.dataframe(df)
+
+            st.subheader("📄 Highlighted Text")
+            highlighted = highlight_text(combined_text, flagged)
+            st.markdown(highlighted, unsafe_allow_html=True)
+
+            st.subheader("✏️ Suggested Rewording")
+            suggestions = suggest_alternatives(combined_text, flagged)
+            st.write(suggestions)
         else:
             st.success("No sensitive terms flagged. Low risk detected.")
 
