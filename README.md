@@ -1,5 +1,5 @@
 # Grant-Risk-Assessment-App-Streamlit
-#  Grant Proposal Risk Scanner
+#  Assessing Language Impact for Grant Narratives (ALIGN)
 
 This app is a prototype tool designed to help researchers and grant writers screen their proposals for politically sensitive language that may be flagged by reviewers or pose a risk to funding. 
 
