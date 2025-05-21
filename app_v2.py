@@ -65,8 +65,8 @@ def review_pathway(title, summary, description):
         return "Category 1: No DEIA/EO language found. Add justification comment."
 
 # --- Streamlit App ---
-st.set_page_config(page_title="Grant Risk Scanner", layout="wide")
-st.title("🧠 Grant Proposal Risk Scanner")
+st.set_page_config(page_title="Assessing Language Impact for Grant Narratives", layout="wide")
+st.title("Assessing Language Impact for Grant Narratives (ALIGN)")
 st.markdown("This tool flags politically sensitive language and estimates the risk percentile based on current climate.")
 
 agency = st.selectbox("Select Funding Agency Profile", ["NIH", "NSF", "Other"])
