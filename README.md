@@ -1,5 +1,5 @@
-# Grant-Risk-Assessment-App-Streamlit
-#  Assessing Language Impact for Grant Narratives (ALIGN)
+# ALIGN: Assessing Language Impact for Grant Narratives
+
 
 This app is a prototype tool designed to help researchers and grant writers screen their proposals for politically sensitive language that may be flagged by reviewers or pose a risk to funding. 
 
@@ -7,6 +7,9 @@ It uses a keyword-based risk model to:
 - Identify terms often flagged in current political climates (e.g., “racism,” “equity,” “disparity”)
 - Estimate a *risk score* based on the frequency and weight of these terms
 - Assign a *percentile rank* simulating how risky the language is compared to typical submissions
+- Visualize flagged words in context
+- Flowchart-based classification logic
+- (Coming soon) LLM-powered rewrites for flagged language
 
 ---
 
@@ -23,7 +26,16 @@ It uses a keyword-based risk model to:
 
 ##  Try It Online
 
-You can deploy the app using [Streamlit Cloud](https://streamlit.io/cloud) for free. Just upload this repo and select `app.py` as the main file.
+[Launch ALIGN on Streamlit Cloud](https://grant-risk-assessment-app-app-yacfwhbnxkthqtp2mepqnx.streamlit.app)
+
+
+##  Run Locally
+
+```bash
+git clone https://github.com/kcadet91/ALIGN-App.git
+cd ALIGN-App
+pip install -r requirements.txt
+streamlit run app_v2.py
 
 ---
 
