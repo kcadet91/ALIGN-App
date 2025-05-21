@@ -7,10 +7,29 @@ import requests
 # --- Setup Hugging Face API for DeepSeek ---
 HUGGINGFACE_API_TOKEN = st.secrets["HUGGINGFACE_API_TOKEN"]
 
-# --- Expanded Sensitive Keyword List (from NSF ban list) ---
+# --- Expanded Sensitive Keyword List ---
 sensitive_keywords = {
     word: 1 for word in set([
-        # ... [same list as before] ...
+        "activism", "activists", "advocacy", "advocate", "advocates",
+        "barrier", "barriers", "biased", "biased toward", "biases", "biases towards",
+        "bipoc", "black and latinx", "community diversity", "community equity",
+        "cultural differences", "cultural heritage", "culturally responsive",
+        "disabilities", "disability", "discriminated", "discrimination", "discriminatory",
+        "diverse backgrounds", "diverse communities", "diverse community", "diverse group",
+        "diverse groups", "diversified", "diversify", "diversifying", "diversity and inclusion",
+        "diversity equity", "enhance the diversity", "enhancing diversity", "equal opportunity",
+        "equality", "equitable", "equity", "ethnicity", "excluded", "female", "females",
+        "fostering inclusivity", "gender", "gender diversity", "genders", "hate speech",
+        "hispanic minority", "historically", "implicit bias", "implicit biases", "inclusion",
+        "inclusive", "inclusiveness", "inclusivity", "increase diversity", "increase the diversity",
+        "indigenous community", "inequalities", "inequality", "inequitable", "inequities",
+        "institutional", "lgbt", "marginalize", "marginalized", "minorities", "minority",
+        "multicultural", "polarization", "political", "prejudice", "privileges", "promoting diversity",
+        "race and ethnicity", "racial", "racial diversity", "racial inequality", "racial justice",
+        "racially", "racism", "sense of belonging", "sexual preferences", "social justice",
+        "sociocultural", "socioeconomic", "status", "stereotypes", "systemic", "trauma",
+        "under appreciated", "under represented", "under served", "underrepresentation",
+        "underrepresented", "underserved", "undervalued", "victim", "women", "women and underrepresented"
     ])
 }
 
@@ -82,26 +101,47 @@ Flagged terms: {', '.join(flagged_terms)}"""
     return "[Error generating reworded suggestions from DeepSeek.]"
 
 # --- Streamlit App UI ---
-st.set_page_config(page_title="ALIGN: Assessing Language Impact for Grant Narratives", layout="wide")
+st.set_page_config(page_title="ALIGN", layout="wide")
 
-# Header
+# --- Custom Style ---
 st.markdown("""
-    <h1 style='color:#6C63FF; font-size: 36px;'>ALIGN: Assessing Language Impact for Grant Narratives</h1>
-    <p style='font-size: 16px;'>This tool identifies politically sensitive language in grant narratives and provides risk assessments and suggested rewrites.</p>
+    <style>
+        html, body, [class*="css"] {
+            font-family: 'Helvetica Neue', sans-serif;
+            background-color: #f7f9fc;
+        }
+        h1 {
+            color: #183D5D;
+        }
+        .block-container {
+            padding-top: 2rem;
+        }
+        .stButton > button {
+            background-color: #183D5D;
+            color: white;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+# --- Header ---
+st.markdown("""
+    <h1>ALIGN: Assessing Language Impact for Grant Narratives</h1>
+    <p style="font-size: 16px; color: #333;">This tool is a prototype to support transparency and awareness in grant language — it does not reflect official agency guidance or guarantee any funding outcome. Always consult your program officer or institutional grant support office.</p>
 """, unsafe_allow_html=True)
 
 agency = st.selectbox("Select Funding Agency Profile", ["NIH", "NSF", "Other"])
 
-# Inputs
+# --- Inputs ---
 col1, col2 = st.columns(2)
 with col1:
     title_text = st.text_area("Paste your Title or Abstract", height=100)
 with col2:
     summary_text = st.text_area("Paste your Project Summary", height=100)
-
 description_text = st.text_area("Paste your Project Description", height=200)
 
-# Analysis
+# --- Button Logic ---
 if st.button("Analyze"):
     combined_text = " ".join([title_text, summary_text, description_text])
     if combined_text.strip():
@@ -109,31 +149,28 @@ if st.button("Analyze"):
         score = compute_risk_score(flagged)
         percentile = estimate_percentile(score)
 
-        # Risk summary
-        st.markdown("<h3 style='color:#444;'>Risk Analysis</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color:#1c1c1c;'>Risk Analysis</h3>", unsafe_allow_html=True)
         st.write(f"**Risk Score:** {score}")
-        st.markdown("**Risk Score Definition:** Total frequency of flagged terms. Higher scores suggest greater likelihood of scrutiny in politically sensitive reviews.")
+        st.markdown("**Risk Score Definition:** Total frequency of flagged terms. Higher scores suggest greater likelihood of scrutiny.")
         st.write(f"**Estimated Risk Percentile:** {percentile}th percentile")
         st.write(f"**Risk Level:** {risk_level_tag(percentile)}")
 
-        # Results
         if flagged:
-            st.markdown("<h3 style='color:#444;'>Flagged Terms</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='color:#1c1c1c;'>Flagged Terms</h3>", unsafe_allow_html=True)
             df = pd.DataFrame(flagged.items(), columns=["Term", "Frequency"])
             st.dataframe(df)
 
-            st.markdown("<h3 style='color:#444;'>Highlighted Text</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='color:#1c1c1c;'>Highlighted Text</h3>", unsafe_allow_html=True)
             highlighted = highlight_text(combined_text, flagged)
             st.markdown(highlighted, unsafe_allow_html=True)
 
-            st.markdown("<h3 style='color:#444;'>Suggested Rewording</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='color:#1c1c1c;'>Suggested Rewording</h3>", unsafe_allow_html=True)
             suggestions = suggest_alternatives(combined_text, flagged)
             st.write(suggestions)
         else:
             st.success("No sensitive terms flagged. Low risk detected.")
 
-        # Flowchart classification
-        st.markdown("<h3 style='color:#444;'>Flowchart Review Classification</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color:#1c1c1c;'>Flowchart Review Classification</h3>", unsafe_allow_html=True)
         st.write(review_pathway(title_text, summary_text, description_text))
     else:
         st.warning("Please paste content into one or more fields to analyze.")
@@ -141,9 +178,8 @@ if st.button("Analyze"):
 # --- Footer ---
 st.markdown("""
     <hr>
-    <p style='font-size: 14px; color: gray;'>
-        <strong>Disclaimer:</strong> ALIGN is a prototype research tool and does not represent official guidance from NIH, NSF, or any funding agency. Use this tool to support language reflection and refinement, not as a substitute for professional review.
-        <br><br>
-        Maintained by <strong>Dr. Kechna Cadet</strong> – Substance Use Epidemiologist
+    <p style="font-size: 14px; color: #555;">
+    <strong>Maintainer:</strong> Dr. Kechna Cadet – Substance Use Epidemiologist<br>
+    For feedback or collaboration, please contact the development team.
     </p>
 """, unsafe_allow_html=True)
