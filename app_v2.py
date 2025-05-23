@@ -103,15 +103,24 @@ Original text:
             "https://api-inference.huggingface.co/models/tiiuae/falcon-7b-instruct",
             headers=headers,
             json=payload,
-            timeout=30
+            timeout=60
         )
-        if response.status_code == 200:
-            result = response.json()
-            return result[0]["generated_text"] if isinstance(result, list) else result["generated_text"]
+        response.raise_for_status()
+        result = response.json()
+        if isinstance(result, list) and "generated_text" in result[0]:
+            return result[0]["generated_text"]
+        elif "generated_text" in result:
+            return result["generated_text"]
         else:
-            return f"[API Error {response.status_code}] {response.text}"
-    except Exception as e:
-        return f"[Exception occurred] {str(e)}"
+            return "[Unexpected API Response Format]"
+    except requests.exceptions.HTTPError as errh:
+        return f"[HTTP Error] {str(errh)}"
+    except requests.exceptions.ConnectionError as errc:
+        return f"[Connection Error] {str(errc)}"
+    except requests.exceptions.Timeout as errt:
+        return f"[Timeout Error] {str(errt)}"
+    except requests.exceptions.RequestException as err:
+        return f"[Request Error] {str(err)}"
 
 
 # --- Streamlit App UI ---
