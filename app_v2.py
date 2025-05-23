@@ -78,29 +78,41 @@ def highlight_text(text, flagged_terms):
     return text
 
 def suggest_alternatives(text, flagged_terms):
-    prompt = f"""Rewrite this grant proposal to reduce risk from the following terms:
-{text}
+    prompt = f"""Rewrite this grant narrative to reduce political risk by rewording or replacing the following terms, while preserving the original meaning and intent.
 
-Flagged terms: {', '.join(flagged_terms)}"""
+Flagged terms: {', '.join(flagged_terms)}
+
+Original text:
+{text}
+"""
     headers = {
         "Authorization": f"Bearer {HUGGINGFACE_API_TOKEN}",
         "Content-Type": "application/json"
     }
     payload = {
         "inputs": prompt,
-        "parameters": {"max_new_tokens": 300}
+        "parameters": {
+            "max_new_tokens": 300,
+            "temperature": 0.7,
+            "top_p": 0.9
+        }
     }
-    response = requests.post(
-    "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta",
-    headers=headers,
-    json=payload
 
+    try:
+        response = requests.post(
+            "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.1",
+            headers=headers,
+            json=payload,
+            timeout=30
+        )
+        if response.status_code == 200:
+            result = response.json()
+            return result[0]["generated_text"] if isinstance(result, list) else result["generated_text"]
+        else:
+            return f"[API Error {response.status_code}] {response.text}"
+    except Exception as e:
+        return f"[Exception occurred] {str(e)}"
 
-    )
-    if response.status_code == 200:
-        result = response.json()
-        return result[0]["generated_text"] if isinstance(result, list) else result["generated_text"]
-    return "[Error generating reworded suggestions from DeepSeek.]"
 
 # --- Streamlit App UI ---
 st.set_page_config(page_title="ALIGN", layout="wide")
