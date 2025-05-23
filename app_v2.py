@@ -100,7 +100,7 @@ Original text:
 
     try:
         response = requests.post(
-            ""https://api-inference.huggingface.co/models/tiiuae/falcon-7b-instruct",
+            "https://api-inference.huggingface.co/models/tiiuae/falcon-7b-instruct",
             headers=headers,
             json=payload,
             timeout=30
@@ -109,7 +109,7 @@ Original text:
             result = response.json()
             return result[0]["generated_text"] if isinstance(result, list) else result["generated_text"]
         else:
-            return f"[DeepSeek API Error {response.status_code}] {response.text}"
+            return f"[API Error {response.status_code}] {response.text}"
     except Exception as e:
         return f"[Exception occurred] {str(e)}"
 
